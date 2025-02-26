@@ -15,9 +15,14 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// Import và sử dụng route
+// Import và sử dụng các routes
 const userRoutes = require("./routers/userRoutes");
+const productRoutes = require("./routers/productRoutes");
+const orderRoutes = require("./routers/orderRoutes");
+
 app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

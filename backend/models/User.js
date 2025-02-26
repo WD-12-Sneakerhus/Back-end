@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken"); // Thêm import jwt
 
 const userSchema = new mongoose.Schema(
   {
@@ -12,5 +13,16 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Tạo JWT token
+userSchema.methods.getSignedJwtToken = function () {
+  return jwt.sign(
+    { id: this._id, isAdmin: this.isAdmin },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "30d",
+    }
+  );
+};
 
 module.exports = mongoose.model("User", userSchema);
