@@ -19,7 +19,9 @@ app.get("/", (req, res) => {
 const userRoutes = require("./routers/userRoutes");
 const productRoutes = require("./routers/productRoutes");
 const orderRoutes = require("./routers/orderRoutes");
+const cartRoutes = require("./routers/cartRoutes");
 
+app.use("/api/cart", cartRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
