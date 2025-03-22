@@ -20,11 +20,15 @@ const userRoutes = require("./routers/userRoutes");
 const productRoutes = require("./routers/productRoutes");
 const orderRoutes = require("./routers/orderRoutes");
 const cartRoutes = require("./routers/cartRoutes");
+const categoryRoutes = require("./routers/categoryRouter");
+const brandRoutes = require("./routers/brandRoutes");
 
 app.use("/api/cart", cartRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/brands", brandRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
