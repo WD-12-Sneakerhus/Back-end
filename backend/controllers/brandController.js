@@ -3,7 +3,8 @@ const Brand = require("../models/Brand");
 // Lấy danh sách thương hiệu (chỉ hiển thị thương hiệu có status = true)
 exports.getBrands = async (req, res) => {
   try {
-    const brands = await Brand.find({ status: true }); // Chỉ lấy thương hiệu đang hoạt động
+    const brands = await Brand.find(); // Chỉ lấy thương hiệu đang hoạt động
+
     res.json(brands);
   } catch (error) {
     res.status(500).json({ message: "Lỗi server", error });

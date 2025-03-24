@@ -1,18 +1,23 @@
 const mongoose = require("mongoose");
 
-const productSchema = new mongoose.Schema(
-  {
-    title: { type: String, required: true },
-    description: { type: String },
-    primary_image_url: { type: String },
-    content: { type: String },
-    price: { type: Number, required: true },
-    price_sale: { type: Number },
-    quantity: { type: Number, required: true },
-    cate_id: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-    brand_id: { type: mongoose.Schema.Types.ObjectId, ref: "Brand" },
+const productSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  brand: { type: mongoose.Schema.Types.ObjectId, ref: "Brand", required: true },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    required: true,
   },
-  { timestamps: true }
-);
+  price: { type: Number, required: true },
+  variants: [
+    {
+      size: { type: String, required: true },
+      color: { type: String, required: true },
+      stock: { type: Number, default: 0 },
+    },
+  ],
+  images: [{ type: String }], // Danh sách URL ảnh
+  description: { type: String },
+});
 
 module.exports = mongoose.model("Product", productSchema);

@@ -1,75 +1,94 @@
+// src/pages/admin/products/ProductAdd.jsx
+
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 const ProductAdd = () => {
   const [product, setProduct] = useState({
-    title: "",
+    name: "",
+    brand: "",
+    category: "",
+    price: "",
+    variants: [{ size: "", color: "", stock: 0 }],
+    images: [],
     description: "",
-    primary_image_url: "",
-    content: "",
-    price: 0,
-    price_sale: 0,
-    quantity: 1,
-    cate_id: "",
-    brand_id: ""
   });
-
-  const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const navigate = useNavigate();
-
-  // Lấy danh sách danh mục & thương hiệu từ API
   useEffect(() => {
-    axios.get("http://localhost:5000/api/categories")
-      .then(res => setCategories(res.data))
-      .catch(err => console.error("Lỗi tải danh mục:", err));
-
-    axios.get("http://localhost:5000/api/brands")
-      .then(res => setBrands(res.data))
-      .catch(err => console.error("Lỗi tải thương hiệu:", err));
+    axios.get("http://localhost:5000/api/brands").then((res) => setBrands(res.data));
+    axios.get("http://localhost:5000/api/categories").then((res) => setCategories(res.data));
   }, []);
 
   const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setProduct({ ...product, [name]: value });
+  };
+
+  const handleVariantChange = (index, e) => {
+    const { name, value } = e.target;
+    const newVariants = [...product.variants];
+    newVariants[index][name] = value;
+    setProduct({ ...product, variants: newVariants });
+  };
+
+  const addVariant = () => {
+    setProduct({
+      ...product,
+      variants: [...product.variants, { size: "", color: "", stock: 0 }],
+    });
+  };
+
+  const removeVariant = (index) => {
+    const newVariants = product.variants.filter((_, i) => i !== index);
+    setProduct({ ...product, variants: newVariants });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post("http://localhost:5000/api/products", product);
-    navigate("/admin/products");
+    try {
+      await axios.post("http://localhost:5000/api/products", product);
+      alert("Product added successfully!");
+    } catch (error) {
+      console.error("Error adding product", error);
+    }
   };
 
   return (
-    <div>
-      <h2>Thêm sản phẩm</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="title" placeholder="Tiêu đề" onChange={handleChange} required />
-        <input name="description" placeholder="Mô tả" onChange={handleChange} />
-        <input name="primary_image_url" placeholder="URL Ảnh" onChange={handleChange} />
-        <textarea name="content" placeholder="Nội dung" onChange={handleChange}></textarea>
-        <input name="price" type="number" placeholder="Giá" onChange={handleChange} required />
-        <input name="price_sale" type="number" placeholder="Giá khuyến mãi" onChange={handleChange} />
-        <input name="quantity" type="number" placeholder="Số lượng" onChange={handleChange} required />
-
-        {/* Dropdown chọn danh mục */}
-        <select name="cate_id" value={product.cate_id} onChange={handleChange} required>
-          <option value="">Chọn danh mục</option>
-          {categories.map(cate => (
-            <option key={cate._id} value={cate._id}>{cate.name}</option>
-          ))}
-        </select>
-
-        {/* Dropdown chọn thương hiệu */}
-        <select name="brand_id" value={product.brand_id} onChange={handleChange} required>
+    <div className="p-4">
+      <h2 className="mb-4 text-xl font-bold">Thêm sản phẩm</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input type="text" name="name" placeholder="Tên sản phẩm" value={product.name} onChange={handleChange} className="input" />
+        <select name="brand" value={product.brand} onChange={handleChange} className="input">
           <option value="">Chọn thương hiệu</option>
-          {brands.map(brand => (
-            <option key={brand._id} value={brand._id}>{brand.name}</option>
+          {brands.map((b) => (
+            <option key={b._id} value={b._id}>{b.name}</option>
           ))}
         </select>
+        <select name="category" value={product.category} onChange={handleChange} className="input">
+          <option value="">Chọn danh mục</option>
+          {categories.map((c) => (
+            <option key={c._id} value={c._id}>{c.name}</option>
+          ))}
+        </select>
+        <input type="number" name="price" placeholder="Giá" value={product.price} onChange={handleChange} className="input" />
+        <textarea name="description" placeholder="Mô tả" value={product.description} onChange={handleChange} className="input" />
 
-        <button type="submit">Thêm</button>
+        <div>
+          <h3>Biến thể sản phẩm</h3>
+          {product.variants.map((variant, index) => (
+            <div key={index} className="flex gap-2">
+              <input type="text" name="size" placeholder="Size" value={variant.size} onChange={(e) => handleVariantChange(index, e)} className="input" />
+              <input type="text" name="color" placeholder="Màu sắc" value={variant.color} onChange={(e) => handleVariantChange(index, e)} className="input" />
+              <input type="number" name="stock" placeholder="Số lượng" value={variant.stock} onChange={(e) => handleVariantChange(index, e)} className="input" />
+              <button type="button" onClick={() => removeVariant(index)}>Xóa</button>
+            </div>
+          ))}
+          <button type="button" onClick={addVariant}>Thêm biến thể</button>
+        </div>
+
+        <button type="submit" className="btn">Thêm sản phẩm</button>
       </form>
     </div>
   );

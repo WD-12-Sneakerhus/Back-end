@@ -3,7 +3,7 @@ const Category = require("../models/Category");
 // Lấy danh sách danh mục (chỉ hiển thị danh mục có status = true)
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ status: true });
+    const categories = await Category.find();
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: "Lỗi server", error });
