@@ -1,5 +1,4 @@
 // src/pages/admin/products/ProductAdd.jsx
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -8,8 +7,7 @@ const ProductAdd = () => {
     name: "",
     brand: "",
     category: "",
-    price: "",
-    variants: [{ size: "", color: "", stock: 0 }],
+    variants: [{ size: "", color: "", stock: 0, price: "" }], // Thêm price vào biến thể
     images: [],
     description: "",
   });
@@ -36,7 +34,7 @@ const ProductAdd = () => {
   const addVariant = () => {
     setProduct({
       ...product,
-      variants: [...product.variants, { size: "", color: "", stock: 0 }],
+      variants: [...product.variants, { size: "", color: "", stock: 0, price: "" }],
     });
   };
 
@@ -49,9 +47,9 @@ const ProductAdd = () => {
     e.preventDefault();
     try {
       await axios.post("http://localhost:5000/api/products", product);
-      alert("Product added successfully!");
+      alert("Sản phẩm đã được thêm thành công!");
     } catch (error) {
-      console.error("Error adding product", error);
+      console.error("Lỗi khi thêm sản phẩm", error);
     }
   };
 
@@ -59,36 +57,88 @@ const ProductAdd = () => {
     <div className="p-4">
       <h2 className="mb-4 text-xl font-bold">Thêm sản phẩm</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="text" name="name" placeholder="Tên sản phẩm" value={product.name} onChange={handleChange} className="input" />
+        <input
+          type="text"
+          name="name"
+          placeholder="Tên sản phẩm"
+          value={product.name}
+          onChange={handleChange}
+          className="input"
+        />
         <select name="brand" value={product.brand} onChange={handleChange} className="input">
           <option value="">Chọn thương hiệu</option>
           {brands.map((b) => (
-            <option key={b._id} value={b._id}>{b.name}</option>
+            <option key={b._id} value={b._id}>
+              {b.name}
+            </option>
           ))}
         </select>
         <select name="category" value={product.category} onChange={handleChange} className="input">
           <option value="">Chọn danh mục</option>
           {categories.map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
+            <option key={c._id} value={c._id}>
+              {c.name}
+            </option>
           ))}
         </select>
-        <input type="number" name="price" placeholder="Giá" value={product.price} onChange={handleChange} className="input" />
-        <textarea name="description" placeholder="Mô tả" value={product.description} onChange={handleChange} className="input" />
+
+        <textarea
+          name="description"
+          placeholder="Mô tả"
+          value={product.description}
+          onChange={handleChange}
+          className="input"
+        />
 
         <div>
           <h3>Biến thể sản phẩm</h3>
           {product.variants.map((variant, index) => (
             <div key={index} className="flex gap-2">
-              <input type="text" name="size" placeholder="Size" value={variant.size} onChange={(e) => handleVariantChange(index, e)} className="input" />
-              <input type="text" name="color" placeholder="Màu sắc" value={variant.color} onChange={(e) => handleVariantChange(index, e)} className="input" />
-              <input type="number" name="stock" placeholder="Số lượng" value={variant.stock} onChange={(e) => handleVariantChange(index, e)} className="input" />
-              <button type="button" onClick={() => removeVariant(index)}>Xóa</button>
+              <input
+                type="text"
+                name="size"
+                placeholder="Size"
+                value={variant.size}
+                onChange={(e) => handleVariantChange(index, e)}
+                className="input"
+              />
+              <input
+                type="text"
+                name="color"
+                placeholder="Màu sắc"
+                value={variant.color}
+                onChange={(e) => handleVariantChange(index, e)}
+                className="input"
+              />
+              <input
+                type="number"
+                name="stock"
+                placeholder="Số lượng"
+                value={variant.stock}
+                onChange={(e) => handleVariantChange(index, e)}
+                className="input"
+              />
+              <input
+                type="number"
+                name="price"
+                placeholder="Giá"
+                value={variant.price}
+                onChange={(e) => handleVariantChange(index, e)}
+                className="input"
+              />
+              <button type="button" onClick={() => removeVariant(index)}>
+                Xóa
+              </button>
             </div>
           ))}
-          <button type="button" onClick={addVariant}>Thêm biến thể</button>
+          <button type="button" onClick={addVariant}>
+            Thêm biến thể
+          </button>
         </div>
 
-        <button type="submit" className="btn">Thêm sản phẩm</button>
+        <button type="submit" className="btn">
+          Thêm sản phẩm
+        </button>
       </form>
     </div>
   );

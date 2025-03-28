@@ -3,23 +3,45 @@ const Product = require("../models/Product");
 // Tạo sản phẩm mới
 const createProduct = async (req, res) => {
   try {
-    const { name, brand, category, price, variants, images, description } =
-      req.body;
+    const { name, brand, category, variants, images, description } = req.body;
+
+    if (!name || !brand || !category || !variants || variants.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Thiếu thông tin sản phẩm hoặc biến thể." });
+    }
+
+    // Kiểm tra danh sách biến thể có hợp lệ không
+    for (let variant of variants) {
+      if (
+        !variant.size ||
+        !variant.color ||
+        !variant.price ||
+        isNaN(variant.price)
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Mỗi biến thể phải có size, color và giá hợp lệ." });
+      }
+    }
+
+    // Tìm giá thấp nhất trong các biến thể để làm giá mặc định
+    const minPrice = Math.min(...variants.map((v) => v.price));
 
     const product = new Product({
       name,
       brand,
       category,
-      price,
+      price: minPrice, // Cập nhật giá rẻ nhất làm giá mặc định
       variants,
       images,
       description,
     });
 
     await product.save();
-    res.status(201).json({ message: "Product created successfully", product });
+    res.status(201).json({ message: "Sản phẩm đã được tạo!", product });
   } catch (error) {
-    res.status(500).json({ message: "Error creating product", error });
+    res.status(500).json({ message: "Lỗi khi tạo sản phẩm", error });
   }
 };
 
@@ -27,11 +49,11 @@ const createProduct = async (req, res) => {
 const getProducts = async (req, res) => {
   try {
     const products = await Product.find()
-      .populate("category") // Đổi từ cate_id thành category
-      .populate("brand"); // Đổi từ brand_id thành brand
+      .populate("category")
+      .populate("brand");
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching products", error });
+    res.status(500).json({ message: "Lỗi khi lấy danh sách sản phẩm", error });
   }
 };
 
@@ -42,76 +64,73 @@ const getProductById = async (req, res) => {
       .populate("category")
       .populate("brand");
 
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product)
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm." });
 
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching product", error });
+    res.status(500).json({ message: "Lỗi khi lấy sản phẩm", error });
   }
 };
 
 // Cập nhật sản phẩm
 const updateProduct = async (req, res) => {
   try {
-    const { name, brand, category, price, variants, images, description } =
-      req.body;
+    const { name, brand, category, variants, images, description } = req.body;
 
-    // Kiểm tra các trường bắt buộc (có thể bỏ qua images và variants nếu không bắt buộc)
-    if (
-      !name ||
-      !brand ||
-      typeof brand !== "object" ||
-      !category ||
-      typeof category !== "object" ||
-      !price ||
-      isNaN(price) ||
-      !description
-    ) {
-      return res
-        .status(400)
-        .json({ message: "All required fields must be valid" });
+    let updateData = {};
+    if (name) updateData.name = name;
+    if (brand) updateData.brand = brand;
+    if (category) updateData.category = category;
+    if (description) updateData.description = description;
+    if (images) {
+      if (!Array.isArray(images)) {
+        return res
+          .status(400)
+          .json({ message: "Hình ảnh phải là danh sách URL." });
+      }
+      updateData.images = images;
     }
 
-    // Kiểm tra brand và category có đúng dạng Object không
-    if (typeof brand !== "object" || typeof category !== "object") {
-      return res
-        .status(400)
-        .json({ message: "Brand and category must be objects" });
+    // Kiểm tra danh sách biến thể nếu có
+    if (variants) {
+      if (!Array.isArray(variants)) {
+        return res.status(400).json({ message: "Variants phải là một mảng." });
+      }
+      for (let variant of variants) {
+        if (
+          !variant.size ||
+          !variant.color ||
+          !variant.price ||
+          isNaN(variant.price)
+        ) {
+          return res
+            .status(400)
+            .json({
+              message: "Mỗi biến thể phải có size, color và giá hợp lệ.",
+            });
+        }
+      }
+      updateData.variants = variants;
+      updateData.price = Math.min(...variants.map((v) => v.price)); // Cập nhật giá nhỏ nhất
     }
 
-    // Kiểm tra variants và images phải là mảng hợp lệ (nếu có)
-    if (variants && !Array.isArray(variants)) {
-      return res.status(400).json({ message: "Variants must be an array" });
-    }
-    if (images && !Array.isArray(images)) {
-      return res.status(400).json({ message: "Images must be an array" });
-    }
-
-    // Tìm và cập nhật sản phẩm
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      {
-        name,
-        brand, // Giữ nguyên object thay vì ObjectId
-        category, // Giữ nguyên object thay vì ObjectId
-        price,
-        variants,
-        images,
-        description,
-      },
-      { new: true, runValidators: true }
+      updateData,
+      { new: true }
     );
 
     if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm." });
     }
 
     res.json({
-      message: "Product updated successfully",
+      message: "Sản phẩm đã được cập nhật!",
       product: updatedProduct,
     });
   } catch (error) {
-    res.status(500).json({ message: "Error updating product", error });
+    res.status(500).json({ message: "Lỗi khi cập nhật sản phẩm", error });
   }
 };
 
@@ -121,11 +140,11 @@ const deleteProduct = async (req, res) => {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
 
     if (!deletedProduct)
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm." });
 
-    res.json({ message: "Product deleted successfully" });
+    res.json({ message: "Sản phẩm đã được xóa." });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting product", error });
+    res.status(500).json({ message: "Lỗi khi xóa sản phẩm", error });
   }
 };
 

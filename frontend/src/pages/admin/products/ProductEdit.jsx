@@ -1,5 +1,4 @@
 // src/pages/admin/products/ProductEdit.jsx
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../../services/axiosInstance";
@@ -43,7 +42,7 @@ const ProductEdit = () => {
   const addVariant = () => {
     setProduct((prev) => ({
       ...prev,
-      variants: [...(prev.variants || []), { size: "", color: "", stock: 0 }],
+      variants: [...(prev.variants || []), { size: "", color: "", stock: 0, price: "" }],
     }));
   };
 
@@ -59,6 +58,7 @@ const ProductEdit = () => {
     setLoading(true);
     try {
       await axiosInstance.put(`/products/${id}`, product);
+      alert("Cập nhật sản phẩm thành công!");
       navigate("/admin/products");
     } catch (err) {
       console.error("Error updating product:", err);
@@ -72,50 +72,72 @@ const ProductEdit = () => {
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <div>
-      <h2>Edit Product</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="p-4">
+      <h2 className="mb-4 text-xl font-bold">Chỉnh sửa sản phẩm</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
           name="name"
+          placeholder="Tên sản phẩm"
           value={product?.name || ""}
           onChange={handleChange}
-        />
-        <input
-          type="number"
-          name="price"
-          value={product?.price || ""}
-          onChange={handleChange}
+          className="input"
         />
         <textarea
           name="description"
+          placeholder="Mô tả"
           value={product?.description || ""}
           onChange={handleChange}
+          className="input"
         />
 
-        <h3>Variants</h3>
+        <h3>Biến thể sản phẩm</h3>
         {product?.variants?.map((variant, index) => (
-          <div key={index}>
+          <div key={index} className="flex gap-2">
             <input
               type="text"
+              name="size"
+              placeholder="Size"
               value={variant.size}
               onChange={(e) => handleVariantChange(index, "size", e.target.value)}
+              className="input"
             />
             <input
               type="text"
+              name="color"
+              placeholder="Màu sắc"
               value={variant.color}
               onChange={(e) => handleVariantChange(index, "color", e.target.value)}
+              className="input"
             />
             <input
               type="number"
+              name="stock"
+              placeholder="Số lượng"
               value={variant.stock}
               onChange={(e) => handleVariantChange(index, "stock", e.target.value)}
+              className="input"
             />
-            <button type="button" onClick={() => removeVariant(index)}>Remove</button>
+            <input
+              type="number"
+              name="price"
+              placeholder="Giá"
+              value={variant.price}
+              onChange={(e) => handleVariantChange(index, "price", e.target.value)}
+              className="input"
+            />
+            <button type="button" onClick={() => removeVariant(index)} className="btn btn-danger">
+              Xóa
+            </button>
           </div>
         ))}
-        <button type="button" onClick={addVariant}>Add Variant</button>
-        <button type="submit">Save</button>
+        <button type="button" onClick={addVariant} className="btn btn-secondary">
+          Thêm biến thể
+        </button>
+
+        <button type="submit" className="btn btn-primary">
+          Lưu thay đổi
+        </button>
       </form>
     </div>
   );

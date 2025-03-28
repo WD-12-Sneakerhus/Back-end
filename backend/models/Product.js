@@ -8,12 +8,13 @@ const productSchema = new mongoose.Schema({
     ref: "Category",
     required: true,
   },
-  price: { type: Number, required: true },
+  // price: { type: Number, required: true },
   variants: [
     {
       size: { type: String, required: true },
       color: { type: String, required: true },
       stock: { type: Number, default: 0 },
+      price: { type: Number, required: true },
     },
   ],
   images: [{ type: String }], // Danh sách URL ảnh

@@ -45,13 +45,11 @@ const createOrder = async (req, res) => {
     // Xóa giỏ hàng sau khi tạo đơn hàng
     await Cart.findOneAndDelete({ user });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Đơn hàng đã được tạo thành công!",
-        order: newOrder,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Đơn hàng đã được tạo thành công!",
+      order: newOrder,
+    });
   } catch (error) {
     res
       .status(500)
@@ -67,13 +65,11 @@ const getUserOrders = async (req, res) => {
     );
     res.json({ success: true, orders });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Lỗi khi lấy danh sách đơn hàng!",
-        error,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy danh sách đơn hàng!",
+      error,
+    });
   }
 };
 
@@ -90,13 +86,11 @@ const getOrderById = async (req, res) => {
 
     res.json({ success: true, order });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Lỗi khi lấy chi tiết đơn hàng!",
-        error,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy chi tiết đơn hàng!",
+      error,
+    });
   }
 };
 
@@ -104,12 +98,10 @@ const getOrderById = async (req, res) => {
 const updateOrder = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res
-        .status(200)
-        .json({
-          success: false,
-          message: "Bạn không có quyền cập nhật đơn hàng!",
-        });
+      return res.status(200).json({
+        success: false,
+        message: "Bạn không có quyền cập nhật đơn hàng!",
+      });
     }
 
     const updatedOrder = await Order.findByIdAndUpdate(
@@ -158,8 +150,26 @@ const deleteOrder = async (req, res) => {
       .json({ success: false, message: "Lỗi khi xóa đơn hàng!", error });
   }
 };
+// 📋 Lấy tất cả đơn hàng (Chỉ admin)
+const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate("user", "name email")
+      .populate("orderItems.product");
+    res.json({ success: true, orders });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Lỗi khi lấy danh sách đơn hàng!",
+        error,
+      });
+  }
+};
 
 module.exports = {
+  getAllOrders,
   createOrder,
   getUserOrders,
   getOrderById,

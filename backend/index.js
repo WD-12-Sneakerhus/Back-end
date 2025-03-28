@@ -3,26 +3,27 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-// Kết nối MongoDB
 connectDB();
 
 const app = express();
-app.use(express.json()); // Cho phép nhận JSON request
-app.use(cors()); // Cho phép truy cập API từ frontend
+app.use(express.json());
+app.use(cors());
 
-// Định nghĩa route test
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
-
-// Import và sử dụng các routes
+// Import Routes
 const userRoutes = require("./routers/userRoutes");
 const productRoutes = require("./routers/productRoutes");
 const orderRoutes = require("./routers/orderRoutes");
 const cartRoutes = require("./routers/cartRoutes");
 const categoryRoutes = require("./routers/categoryRouter");
 const brandRoutes = require("./routers/brandRoutes");
+const adminAuthRoutes = require("./routers/adminAuth");
 
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+// Sử dụng routes
+app.use("/api/admin", adminAuthRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
