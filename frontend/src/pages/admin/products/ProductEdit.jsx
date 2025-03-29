@@ -6,7 +6,7 @@ import axiosInstance from "../../../services/axiosInstance";
 const ProductEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState({ basePrice: 0, gender: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,7 +14,11 @@ const ProductEdit = () => {
     axiosInstance
       .get(`/products/${id}`)
       .then((res) => {
-        setProduct(res.data);
+        const productData = res.data;
+        const basePrice = productData.variants?.length
+          ? Math.min(...productData.variants.map((v) => Number(v.price) || Infinity))
+          : 0;
+        setProduct({ ...productData, basePrice });
         setLoading(false);
       })
       .catch((err) => {
@@ -35,29 +39,40 @@ const ProductEdit = () => {
     setProduct((prev) => {
       const updatedVariants = [...(prev.variants || [])];
       updatedVariants[index] = { ...updatedVariants[index], [field]: value };
-      return { ...prev, variants: updatedVariants };
+
+      const newBasePrice = Math.min(...updatedVariants.map((v) => Number(v.price) || Infinity));
+
+      return { ...prev, variants: updatedVariants, basePrice: newBasePrice };
     });
   };
 
   const addVariant = () => {
-    setProduct((prev) => ({
-      ...prev,
-      variants: [...(prev.variants || []), { size: "", color: "", stock: 0, price: "" }],
-    }));
+    setProduct((prev) => {
+      const newVariants = [...(prev.variants || []), { size: "", color: "", stock: 0, price: "" }];
+      const newBasePrice = Math.min(...newVariants.map((v) => Number(v.price) || Infinity));
+
+      return { ...prev, variants: newVariants, basePrice: newBasePrice };
+    });
   };
 
   const removeVariant = (index) => {
-    setProduct((prev) => ({
-      ...prev,
-      variants: prev.variants.filter((_, i) => i !== index),
-    }));
+    setProduct((prev) => {
+      const newVariants = prev.variants.filter((_, i) => i !== index);
+      const newBasePrice = newVariants.length > 0 ? Math.min(...newVariants.map((v) => Number(v.price) || Infinity)) : 0;
+
+      return { ...prev, variants: newVariants, basePrice: newBasePrice };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axiosInstance.put(`/products/${id}`, product);
+      await axiosInstance.put(`/products/${id}`, {
+        ...product,
+        basePrice: product.basePrice,
+      });
+
       alert("Cập nhật sản phẩm thành công!");
       navigate("/admin/products");
     } catch (err) {
@@ -88,6 +103,28 @@ const ProductEdit = () => {
           placeholder="Mô tả"
           value={product?.description || ""}
           onChange={handleChange}
+          className="input"
+        />
+
+        {/* Chọn giới tính */}
+        <select
+          name="gender"
+          value={product.gender || ""}
+          onChange={handleChange}
+          className="input"
+        >
+          <option value="">Chọn giới tính</option>
+          <option value="male">male</option>
+          <option value="female">female</option>
+          <option value="unisex">unisex</option>
+        </select>
+
+        <input
+          type="number"
+          name="basePrice"
+          placeholder="Giá cơ bản (tự động cập nhật)"
+          value={product?.basePrice || 0}
+          disabled
           className="input"
         />
 

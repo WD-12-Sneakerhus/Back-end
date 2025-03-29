@@ -17,7 +17,7 @@ const cartRoutes = require("./routers/cartRoutes");
 const categoryRoutes = require("./routers/categoryRouter");
 const brandRoutes = require("./routers/brandRoutes");
 const adminAuthRoutes = require("./routers/adminAuth");
-
+const voucherRouter = require("./routers/voucherRoutes");
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -30,6 +30,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);
+app.use("/api/vouchers", voucherRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

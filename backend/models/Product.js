@@ -8,7 +8,12 @@ const productSchema = new mongoose.Schema({
     ref: "Category",
     required: true,
   },
-  // price: { type: Number, required: true },
+  gender: {
+    type: String,
+    enum: ["male", "female", "unisex"], // Chỉ chấp nhận 3 giá trị này
+    required: true,
+  },
+  basePrice: { type: Number, required: true },
   variants: [
     {
       size: { type: String, required: true },

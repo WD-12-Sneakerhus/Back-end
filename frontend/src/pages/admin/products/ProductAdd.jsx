@@ -7,10 +7,13 @@ const ProductAdd = () => {
     name: "",
     brand: "",
     category: "",
-    variants: [{ size: "", color: "", stock: 0, price: "" }], // Thêm price vào biến thể
+    gender: "", // Giới tính
+    variants: [{ size: "", color: "", stock: 0, price: "" }],
     images: [],
     description: "",
+    basePrice: 0, // Giá mặc định thấp nhất trong các biến thể
   });
+
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -28,25 +31,35 @@ const ProductAdd = () => {
     const { name, value } = e.target;
     const newVariants = [...product.variants];
     newVariants[index][name] = value;
-    setProduct({ ...product, variants: newVariants });
+
+    // Tính giá thấp nhất từ các biến thể
+    const newBasePrice = Math.min(...newVariants.map((v) => Number(v.price) || Infinity));
+
+    setProduct({ ...product, variants: newVariants, basePrice: newBasePrice });
   };
 
   const addVariant = () => {
-    setProduct({
-      ...product,
-      variants: [...product.variants, { size: "", color: "", stock: 0, price: "" }],
-    });
+    const newVariants = [...product.variants, { size: "", color: "", stock: 0, price: "" }];
+    const newBasePrice = Math.min(...newVariants.map((v) => Number(v.price) || Infinity));
+
+    setProduct({ ...product, variants: newVariants, basePrice: newBasePrice });
   };
 
   const removeVariant = (index) => {
     const newVariants = product.variants.filter((_, i) => i !== index);
-    setProduct({ ...product, variants: newVariants });
+    const newBasePrice = newVariants.length > 0 ? Math.min(...newVariants.map((v) => Number(v.price) || Infinity)) : 0;
+
+    setProduct({ ...product, variants: newVariants, basePrice: newBasePrice });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/products", product);
+      await axios.post("http://localhost:5000/api/products", {
+        ...product,
+        basePrice: product.basePrice,
+      });
+
       alert("Sản phẩm đã được thêm thành công!");
     } catch (error) {
       console.error("Lỗi khi thêm sản phẩm", error);
@@ -65,6 +78,7 @@ const ProductAdd = () => {
           onChange={handleChange}
           className="input"
         />
+
         <select name="brand" value={product.brand} onChange={handleChange} className="input">
           <option value="">Chọn thương hiệu</option>
           {brands.map((b) => (
@@ -73,6 +87,7 @@ const ProductAdd = () => {
             </option>
           ))}
         </select>
+
         <select name="category" value={product.category} onChange={handleChange} className="input">
           <option value="">Chọn danh mục</option>
           {categories.map((c) => (
@@ -80,6 +95,14 @@ const ProductAdd = () => {
               {c.name}
             </option>
           ))}
+        </select>
+
+        {/* Chọn giới tính */}
+        <select name="gender" value={product.gender} onChange={handleChange} className="input">
+          <option value="">Chọn giới tính</option>
+          <option value="male">male</option>
+          <option value="female">female</option>
+          <option value="unisex">unisex</option>
         </select>
 
         <textarea
@@ -126,17 +149,17 @@ const ProductAdd = () => {
                 onChange={(e) => handleVariantChange(index, e)}
                 className="input"
               />
-              <button type="button" onClick={() => removeVariant(index)}>
+              <button type="button" onClick={() => removeVariant(index)} className="btn btn-danger">
                 Xóa
               </button>
             </div>
           ))}
-          <button type="button" onClick={addVariant}>
+          <button type="button" onClick={addVariant} className="btn btn-secondary">
             Thêm biến thể
           </button>
         </div>
 
-        <button type="submit" className="btn">
+        <button type="submit" className="btn btn-primary">
           Thêm sản phẩm
         </button>
       </form>

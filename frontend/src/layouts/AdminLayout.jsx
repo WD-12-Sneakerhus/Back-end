@@ -34,6 +34,9 @@ function AdminLayout() {
           <Link to="/admin/users" className="block px-4 py-2 rounded hover:bg-gray-600">
             Quản lý người dùng
           </Link>
+          <Link to="/admin/vouchers" className="block px-4 py-2 rounded hover:bg-gray-600">
+            Quản lý voucher
+          </Link>
         </nav>
 
         {/* Nút Logout */}

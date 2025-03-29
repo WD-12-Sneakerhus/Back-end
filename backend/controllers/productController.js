@@ -3,12 +3,33 @@ const Product = require("../models/Product");
 // Tạo sản phẩm mới
 const createProduct = async (req, res) => {
   try {
-    const { name, brand, category, variants, images, description } = req.body;
+    const {
+      name,
+      brand,
+      category,
+      gender,
+      variants,
+      images,
+      description,
+      basePrice,
+    } = req.body;
 
-    if (!name || !brand || !category || !variants || variants.length === 0) {
+    if (
+      !name ||
+      !brand ||
+      !category ||
+      !gender ||
+      !variants ||
+      variants.length === 0
+    ) {
       return res
         .status(400)
         .json({ message: "Thiếu thông tin sản phẩm hoặc biến thể." });
+    }
+
+    // Kiểm tra giá trị hợp lệ của gender
+    if (!["male", "female", "unisex"].includes(gender)) {
+      return res.status(400).json({ message: "Giới tính không hợp lệ." });
     }
 
     // Kiểm tra danh sách biến thể có hợp lệ không
@@ -25,14 +46,15 @@ const createProduct = async (req, res) => {
       }
     }
 
-    // Tìm giá thấp nhất trong các biến thể để làm giá mặc định
+    // Lấy giá nhỏ nhất làm basePrice nếu không có
     const minPrice = Math.min(...variants.map((v) => v.price));
 
     const product = new Product({
       name,
       brand,
       category,
-      price: minPrice, // Cập nhật giá rẻ nhất làm giá mặc định
+      gender,
+      basePrice: basePrice || minPrice,
       variants,
       images,
       description,
@@ -51,6 +73,7 @@ const getProducts = async (req, res) => {
     const products = await Product.find()
       .populate("category")
       .populate("brand");
+
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: "Lỗi khi lấy danh sách sản phẩm", error });
@@ -76,13 +99,28 @@ const getProductById = async (req, res) => {
 // Cập nhật sản phẩm
 const updateProduct = async (req, res) => {
   try {
-    const { name, brand, category, variants, images, description } = req.body;
+    const {
+      name,
+      brand,
+      category,
+      gender,
+      variants,
+      images,
+      description,
+      basePrice,
+    } = req.body;
 
     let updateData = {};
     if (name) updateData.name = name;
     if (brand) updateData.brand = brand;
     if (category) updateData.category = category;
     if (description) updateData.description = description;
+    if (gender) {
+      if (!["male", "female", "unisex"].includes(gender)) {
+        return res.status(400).json({ message: "Giới tính không hợp lệ." });
+      }
+      updateData.gender = gender;
+    }
     if (images) {
       if (!Array.isArray(images)) {
         return res
@@ -104,15 +142,14 @@ const updateProduct = async (req, res) => {
           !variant.price ||
           isNaN(variant.price)
         ) {
-          return res
-            .status(400)
-            .json({
-              message: "Mỗi biến thể phải có size, color và giá hợp lệ.",
-            });
+          return res.status(400).json({
+            message: "Mỗi biến thể phải có size, color và giá hợp lệ.",
+          });
         }
       }
       updateData.variants = variants;
-      updateData.price = Math.min(...variants.map((v) => v.price)); // Cập nhật giá nhỏ nhất
+      updateData.basePrice =
+        basePrice || Math.min(...variants.map((v) => v.price));
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(

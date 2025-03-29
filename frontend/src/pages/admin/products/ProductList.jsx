@@ -39,8 +39,9 @@ const ProductList = () => {
     }
   };
 
-  const formatPrice = (price) => {
-    return price ? `${price.toLocaleString()} VND` : "Chưa cập nhật";
+  const formatPrice = (product) => {
+    const basePrice = product.basePrice || (product.variants.length > 0 ? product.variants[0].price : null);
+    return basePrice ? `${basePrice.toLocaleString()} VND` : "Chưa cập nhật";
   };
 
   const filteredProducts = products.filter((product) =>
@@ -85,6 +86,7 @@ const ProductList = () => {
                 <th className="p-2 text-left">STT</th>
                 <th className="p-2 text-left">Tên</th>
                 <th className="p-2 text-left">Thương hiệu</th>
+                <th className="p-2 text-left">Giới tính</th>
                 <th className="p-2 text-left">Giá</th>
                 <th className="p-2 text-left">Hành động</th>
               </tr>
@@ -95,7 +97,10 @@ const ProductList = () => {
                   <td className="p-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td className="p-2">{product.name || "Không có tên"}</td>
                   <td className="p-2">{product.brand?.name || "Không có thương hiệu"}</td>
-                  <td className="p-2">{formatPrice(product.price)}</td>
+                  <td className="p-2">
+                    {product.gender === "male" ? "male" : product.gender === "female" ? "female" : "unisex"}
+                  </td>
+                  <td className="p-2">{formatPrice(product)}</td>
                   <td className="flex items-center p-2 space-x-2">
                     <Link to={`/admin/products/edit/${product._id}`} className="flex items-center text-blue-500 hover:text-blue-700">
                       <FaEdit className="mr-1" /> Sửa
@@ -110,17 +115,22 @@ const ProductList = () => {
           </table>
 
           {/* Phân trang */}
-          <div className="flex justify-center mt-4 space-x-2">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-3 py-1 border rounded-md ${currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
-                  }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+          <div className="flex justify-center gap-4 mt-4">
+            <button
+              className="p-2 border"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+            >
+              Trang trước
+            </button>
+            <span>Trang {currentPage} / {totalPages}</span>
+            <button
+              className="p-2 border"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+            >
+              Trang sau
+            </button>
           </div>
         </>
       )}
