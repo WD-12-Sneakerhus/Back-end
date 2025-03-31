@@ -2,21 +2,62 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-// Đăng ký user mới
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { fullname, username, email, phone, password } = req.body;
+
+    // Kiểm tra xem email, username hoặc phone đã tồn tại chưa
+    const existingUser = await User.findOne({ email });
+    const existingUsername = await User.findOne({ username });
+    const existingPhone = await User.findOne({ phone });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Email đã được sử dụng!" });
+    }
+    if (existingUsername) {
+      return res.status(400).json({ message: "Tên đăng nhập đã tồn tại!" });
+    }
+    if (existingPhone) {
+      return res
+        .status(400)
+        .json({ message: "Số điện thoại đã được sử dụng!" });
+    }
+
+    // Hash mật khẩu
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({ name, email, password: hashedPassword });
+    // Tạo user mới
+    const newUser = new User({
+      fullname,
+      username,
+      email,
+      phone, // Lưu số điện thoại
+      password: hashedPassword,
+    });
+
     await newUser.save();
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", user: newUser });
+    // Tạo token đăng nhập
+    const token = jwt.sign(
+      { _id: newUser._id, isAdmin: newUser.role === "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      message: "Đăng ký thành công!",
+      token,
+      user: {
+        _id: newUser._id,
+        fullname: newUser.fullname,
+        username: newUser.username,
+        email: newUser.email,
+        phone: newUser.phone, // Trả về số điện thoại
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error creating user", error });
+    res.status(500).json({ message: "Lỗi khi tạo tài khoản!", error });
   }
 };
 
@@ -25,21 +66,41 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Invalid email or password" });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Email hoặc mật khẩu không đúng!" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid email or password" });
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ message: "Email hoặc mật khẩu không đúng!" });
+    }
 
+    // Tạo token
     const token = jwt.sign(
-      { _id: user._id, isAdmin: user.isAdmin },
+      { _id: user._id, isAdmin: user.role === "admin" },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.json({ message: "Login successful", token, user });
+
+    res.json({
+      message: "Đăng nhập thành công!",
+      token,
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        username: user.username,
+        email: user.email,
+        phone: user.phone, // Trả về số điện thoại
+        role: user.role,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error logging in", error });
+    res.status(500).json({ message: "Lỗi khi đăng nhập!", error });
   }
 };
 

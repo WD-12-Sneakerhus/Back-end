@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { FiShoppingCart } from "react-icons/fi"; // Import icon giỏ hàng
+import { useNavigate } from "react-router-dom";
+import { FiShoppingCart } from "react-icons/fi";
 import axiosInstance from "../../services/axiosInstance";
 
 const categories = [
@@ -11,12 +12,12 @@ const categories = [
 const FeaturedCategories = () => {
   const [products, setProducts] = useState([]);
   const [selectedGender, setSelectedGender] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axiosInstance.get("/products");
-        console.log("✅ Dữ liệu sản phẩm từ API:", res.data);
         setProducts(res.data);
       } catch (error) {
         console.error("❌ Lỗi khi lấy sản phẩm:", error);
@@ -26,14 +27,10 @@ const FeaturedCategories = () => {
     fetchProducts();
   }, []);
 
+  // Lọc sản phẩm theo giới tính và giới hạn chỉ 3 sản phẩm
   const filteredProducts = selectedGender
-    ? products.filter(
-      (product) => product.gender?.toLowerCase() === selectedGender?.toLowerCase()
-    )
-    : products;
-
-  console.log("🔥 Giới tính được chọn:", selectedGender);
-  console.log("🎯 Sản phẩm sau khi lọc:", filteredProducts);
+    ? products.filter((product) => product.gender?.toLowerCase() === selectedGender?.toLowerCase()).slice(0, 3)
+    : [];
 
   return (
     <div className="py-8">
@@ -64,12 +61,12 @@ const FeaturedCategories = () => {
         <h3 className="mb-4 text-xl font-semibold text-center">
           {selectedGender
             ? `Sản phẩm dành cho ${categories.find((c) => c.gender === selectedGender)?.name}`
-            : "Tất cả sản phẩm"}
+            : "Chọn danh mục để hiển thị sản phẩm"}
         </h3>
 
-        <div className="grid grid-cols-3 gap-4 px-4">
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => {
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-3 gap-4 px-4">
+            {filteredProducts.map((product) => {
               const imageUrl = product.images?.[0] || "/default-image.jpg";
               const price = product.basePrice || product.variants?.[0]?.price || 0;
 
@@ -80,18 +77,28 @@ const FeaturedCategories = () => {
 
                   {/* Giá tiền & Giỏ hàng */}
                   <div className="flex items-center justify-between mt-2">
-                    <p className="font-bold text-red-500">{price.toLocaleString()} VNĐ</p>
-                    <button className="p-2 text-white bg-blue-500 rounded hover:bg-blue-600">
+                    <p
+                      className="font-bold text-red-500 cursor-pointer"
+                      onClick={() => navigate(`/buy/${product._id}`)}
+                    >
+                      {price.toLocaleString()} VNĐ
+                    </p>
+                    <button
+                      className="p-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                      onClick={() => navigate(`/cart/add/${product._id}`)}
+                    >
                       <FiShoppingCart size={20} />
                     </button>
                   </div>
                 </div>
               );
-            })
-          ) : (
-            <p className="col-span-3 text-center text-gray-500">Không có sản phẩm nào.</p>
-          )}
-        </div>
+            })}
+          </div>
+        ) : (
+          <p className="col-span-3 text-center text-gray-500">
+            {selectedGender ? "Không có sản phẩm nào." : "Hãy chọn danh mục để hiển thị sản phẩm"}
+          </p>
+        )}
       </div>
     </div>
   );

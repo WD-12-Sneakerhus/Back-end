@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/uploadImage");
 const {
   createProduct,
   getProducts,
@@ -8,11 +9,14 @@ const {
   deleteProduct,
 } = require("../controllers/productController");
 
-// Routes
-router.post("/", createProduct); // Thêm sản phẩm
-router.get("/", getProducts); // Lấy danh sách sản phẩm
-router.get("/:id", getProductById); // Lấy sản phẩm theo ID
-router.put("/:id", updateProduct); // Cập nhật sản phẩm
-router.delete("/:id", deleteProduct); // Xóa sản phẩm
+// Route tạo sản phẩm với upload ảnh
+router.post("/", upload.array("images", 5), createProduct); // Tối đa 5 ảnh
+
+// Route cập nhật sản phẩm, hỗ trợ update ảnh
+router.put("/:id", upload.array("images", 5), updateProduct);
+
+router.get("/", getProducts);
+router.get("/:id", getProductById);
+router.delete("/:id", deleteProduct);
 
 module.exports = router;

@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const CheckoutPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cart, setCart] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -11,22 +13,28 @@ const CheckoutPage = () => {
     address: "",
   });
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    // Lấy giỏ hàng từ localStorage
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
+    let orderItems = [];
+
+    if (location.state && location.state.orderItem) {
+      // Nếu có sản phẩm từ BuyPage
+      orderItems = [location.state.orderItem];
+    } else {
+      // Nếu vào từ giỏ hàng, lấy từ localStorage
+      orderItems = JSON.parse(localStorage.getItem("cart")) || [];
+    }
+
+    setCart(orderItems);
 
     // Tính tổng tiền
-    const total = storedCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     setTotalPrice(total);
 
-    // Tính ngày giao hàng dự kiến (3 ngày sau hôm nay)
+    // Tính ngày giao hàng dự kiến (3 ngày sau)
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() + 3);
     setDeliveryDate(currentDate.toLocaleDateString("vi-VN"));
-  }, []);
+  }, [location.state]);
 
   // Xử lý thay đổi thông tin khách hàng
   const handleChange = (e) => {
@@ -51,8 +59,11 @@ const CheckoutPage = () => {
 
     console.log("🛒 Đơn hàng đã đặt:", orderData);
 
-    // Xóa giỏ hàng sau khi đặt hàng thành công
-    localStorage.removeItem("cart");
+    // Nếu mua từ BuyPage, không xóa toàn bộ giỏ hàng
+    if (!location.state || !location.state.orderItem) {
+      localStorage.removeItem("cart");
+    }
+
     setCart([]);
     alert("Đặt hàng thành công!");
 
@@ -71,7 +82,7 @@ const CheckoutPage = () => {
             {cart.map((item, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-white rounded-md shadow-md">
                 <div className="flex items-center">
-                  <img src={item.images[0]} alt={item.name} className="w-16 h-16 rounded" />
+                  <img src={item.images?.[0] || "/default-image.jpg"} alt={item.name} className="w-16 h-16 rounded" />
                   <div className="ml-4">
                     <h3 className="text-lg font-semibold">{item.name}</h3>
                     <p className="text-gray-600">Size: {item.size}, Màu: {item.color}</p>

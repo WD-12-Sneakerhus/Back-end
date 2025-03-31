@@ -1,15 +1,14 @@
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken"); // Thêm import jwt
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema(
   {
-    fullname: { type: String, required: true },
-    username: { type: String, required: true, unique: true },
+    fullname: { type: String, required: true }, // Đổi từ "name" thành "fullname"
+    username: { type: String, required: true, unique: true }, // Bổ sung username
     email: { type: String, required: true, unique: true },
-    email_verified_at: { type: Date, default: null },
+    phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ["admin", "user"], default: "user" },
-    remember_token: { type: String },
+    role: { type: String, enum: ["admin", "user"], default: "user" }, // Mặc định là user
   },
   { timestamps: true }
 );
@@ -17,11 +16,9 @@ const userSchema = new mongoose.Schema(
 // Tạo JWT token
 userSchema.methods.getSignedJwtToken = function () {
   return jwt.sign(
-    { id: this._id, isAdmin: this.isAdmin },
+    { id: this._id, isAdmin: this.role === "admin" },
     process.env.JWT_SECRET,
-    {
-      expiresIn: "30d",
-    }
+    { expiresIn: "7d" }
   );
 };
 

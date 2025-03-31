@@ -12,10 +12,19 @@ import UserList from "./pages/admin/user/UserList";
 import VoucherList from "./pages/admin/vouchers/VoucherList";
 import VoucherAdd from "./pages/admin/vouchers/VoucherAdd";
 
-
 import Home from "./pages/user/Home";
 import CartPage from "./pages/user/cart/CartPage";
-import CheckoutPage from "./pages/checkout/CheckoutPage";
+import CheckoutPage from "./pages/user/checkout/CheckoutPage";
+import OrderHistoryPage from "./pages/user/orders/OrderHistoryPage";
+import OrderDetailPage from "./pages/user/orders/OrderDetailPage";
+import BuyPage from "./pages/user/buy/BuyPage";
+import AddToCartPage from "./pages/user/cart/AddToCartPage";
+import Login from "./pages/user/auth/Login";
+import Register from "./pages/user/auth/Register";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+// import AdminProtectedRoute from "./components/AdminProtectedRoute";
+
 function App() {
   return (
     <Router>
@@ -41,8 +50,20 @@ function App() {
         {/* Layout User */}
         <Route path="/" element={<UserLayout />}>
           <Route index element={<Home />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+
+
+          {/* Protected Routes for User */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="orders/history" element={<OrderHistoryPage />} />
+            <Route path="orders/:id" element={<OrderDetailPage />} />
+            <Route path="buy/:id" element={<BuyPage />} />
+            <Route path="cart/add/:id" element={<AddToCartPage />} />
+          </Route>
+
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
         </Route>
       </Routes>
     </Router>
