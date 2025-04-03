@@ -5,45 +5,16 @@ const Cart = require("../models/Cart");
 // 🛍️ Tạo đơn hàng
 const createOrder = async (req, res) => {
   try {
-    const { user } = req.body;
+    const { user, orderItems, totalPrice } = req.body;
 
-    // Kiểm tra giỏ hàng
-    const cart = await Cart.findOne({ user }).populate("items.product");
-    if (!cart || cart.items.length === 0) {
-      return res
-        .status(200)
-        .json({ success: false, message: "Giỏ hàng của bạn đang trống!" });
-    }
-
-    // Kiểm tra từng sản phẩm trong giỏ hàng
-    for (let item of cart.items) {
-      const product = await Product.findById(item.product._id);
-      if (!product) {
-        return res.status(200).json({
-          success: false,
-          message: `Sản phẩm "${item.product.name}" không còn tồn tại!`,
-        });
-      }
-    }
-
-    // Tính tổng tiền đơn hàng
-    const totalPrice = cart.items.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0
-    );
-
-    // Tạo đơn hàng mới
     const newOrder = new Order({
       user,
-      orderItems: cart.items,
+      orderItems,
       totalPrice,
-      status: "pending",
+      status: "pending", // Mặc định là Chờ giao hàng
     });
 
     await newOrder.save();
-
-    // Xóa giỏ hàng sau khi tạo đơn hàng
-    await Cart.findOneAndDelete({ user });
 
     res.status(200).json({
       success: true,
@@ -58,11 +29,18 @@ const createOrder = async (req, res) => {
 };
 
 // 📦 Lấy danh sách đơn hàng của người dùng
+// 📦 Lấy danh sách đơn hàng của người dùng (Lọc theo trạng thái nếu có)
 const getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.params.userId }).populate(
-      "orderItems.product"
-    );
+    const { status } = req.query;
+    let filter = { user: req.params.userId };
+
+    if (status) {
+      filter.status = status; // Lọc theo trạng thái nếu có
+    }
+
+    const orders = await Order.find(filter).populate("orderItems.product");
+
     res.json({ success: true, orders });
   } catch (error) {
     res.status(500).json({
@@ -93,33 +71,25 @@ const getOrderById = async (req, res) => {
     });
   }
 };
-
-// ⚙️ Cập nhật trạng thái đơn hàng (chỉ admin)
 const updateOrder = async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(200).json({
-        success: false,
-        message: "Bạn không có quyền cập nhật đơn hàng!",
-      });
-    }
+    const { status } = req.body;
+    const order = await Order.findById(req.params.id);
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!updatedOrder) {
+    if (!order) {
       return res
-        .status(200)
+        .status(404)
         .json({ success: false, message: "Không tìm thấy đơn hàng!" });
     }
 
+    // Cập nhật trạng thái đơn hàng
+    order.status = status;
+    await order.save();
+
     res.json({
       success: true,
-      message: "Cập nhật đơn hàng thành công!",
-      order: updatedOrder,
+      message: "Cập nhật trạng thái đơn hàng thành công!",
+      order,
     });
   } catch (error) {
     res
@@ -158,13 +128,11 @@ const getAllOrders = async (req, res) => {
       .populate("orderItems.product");
     res.json({ success: true, orders });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Lỗi khi lấy danh sách đơn hàng!",
-        error,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy danh sách đơn hàng!",
+      error,
+    });
   }
 };
 

@@ -1,28 +1,31 @@
 import { useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../../services/axiosInstance";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
 
     try {
-      const res = await axios.post("/api/users/login", { email, password });
+      const res = await axiosInstance.post("/users/login", { email, password });
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      alert("Đăng nhập thành công!");
-      window.location.href = "/"; // Chuyển hướng về trang chủ
+      alert("✅ Đăng nhập thành công!");
+      navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Đăng nhập thất bại!");
+      setError(err.response?.data?.message || "❌ Đăng nhập thất bại!");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

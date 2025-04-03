@@ -12,16 +12,26 @@ const OrderList = () => {
   const ordersPerPage = 5;
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get("/api/orders");
-        setOrders(res.data.orders);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách đơn hàng", error);
-      }
-    };
     fetchOrders();
   }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get("/api/orders");
+      setOrders(res.data.orders);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách đơn hàng", error);
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await axios.put(`/api/orders/${orderId}`, { status: newStatus });
+      fetchOrders(); // Cập nhật lại danh sách sau khi thay đổi trạng thái
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái đơn hàng", error);
+    }
+  };
 
   const filteredOrders = orders.filter((order) => {
     return (
@@ -55,6 +65,7 @@ const OrderList = () => {
           <option value="all">Tất cả</option>
           <option value="pending">Chờ xác nhận</option>
           <option value="confirmed">Đã xác nhận</option>
+          <option value="shipping">Đang giao hàng</option>
           <option value="completed">Đã hoàn thành</option>
         </select>
       </div>
@@ -65,6 +76,33 @@ const OrderList = () => {
             <h3 className="font-bold">Mã: {order._id}</h3>
             <p>Trạng thái: {order.status}</p>
             <p>Tổng tiền: {order.totalPrice} VNĐ</p>
+
+            {/* Nút cập nhật trạng thái */}
+            {order.status === "pending" && (
+              <button
+                className="px-4 py-2 mt-2 text-white bg-blue-500 rounded"
+                onClick={() => updateOrderStatus(order._id, "confirmed")}
+              >
+                Xác nhận đơn
+              </button>
+            )}
+            {order.status === "confirmed" && (
+              <button
+                className="px-4 py-2 mt-2 text-white bg-green-500 rounded"
+                onClick={() => updateOrderStatus(order._id, "shipping")}
+              >
+                Giao hàng
+              </button>
+            )}
+            {order.status === "shipping" && (
+              <button
+                className="px-4 py-2 mt-2 text-white bg-purple-500 rounded"
+                onClick={() => updateOrderStatus(order._id, "completed")}
+              >
+                Đã giao hàng
+              </button>
+            )}
+
             <Link
               to={`/admin/orders/${order._id}`}
               className="block mt-2 text-blue-500 hover:underline"

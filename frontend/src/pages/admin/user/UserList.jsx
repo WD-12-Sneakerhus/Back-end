@@ -1,14 +1,14 @@
 // src/pages/admin/users/UserList.jsx
 import { useEffect, useState } from "react";
 import axiosInstance from "../../../services/axiosInstance";
-import { FaBan, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -28,51 +28,49 @@ const UserList = () => {
     }
   };
 
-  // Cấm hoặc mở khóa tài khoản
-  const toggleUserStatus = async (id, isActive) => {
-    if (
-      window.confirm(
-        `Bạn có chắc chắn muốn ${isActive ? "cấm" : "gỡ cấm"} tài khoản này?`
-      )
-    ) {
-      try {
-        await axiosInstance.patch(`/users/${id}`, { isActive: !isActive });
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user._id === id ? { ...user, isActive: !isActive } : user
-          )
-        );
-      } catch (error) {
-        console.error("Lỗi khi cập nhật trạng thái người dùng:", error);
-      }
-    }
-  };
-
   // Xóa tài khoản
   const deleteUser = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
       try {
         await axiosInstance.delete(`/users/${id}`);
-        setUsers(users.filter((user) => user._id !== id));
+        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
       } catch (error) {
         console.error("Lỗi khi xóa người dùng:", error);
       }
     }
   };
+  const toggleBlockUser = async (id, isBlocked) => {
+    if (window.confirm(`Bạn có chắc chắn muốn ${isBlocked ? "bỏ chặn" : "chặn"} tài khoản này?`)) {
+      try {
+        await axiosInstance.put(`/users/${id}/block`);
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user._id === id ? { ...user, isBlocked: !isBlocked } : user
+          )
+        );
+      } catch (error) {
+        console.error("Lỗi khi cập nhật trạng thái:", error.response?.data || error);
+      }
+    }
+  };
 
-  // Bộ lọc danh sách người dùng
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.phone.includes(searchTerm);
 
     const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "active" && user.isActive) ||
-      (statusFilter === "banned" && !user.isActive);
+      roleFilter === "all" ||
+      (roleFilter === "active" && !user.isBlocked) ||
+      (roleFilter === "blocked" && user.isBlocked);
 
     return matchesSearch && matchesStatus;
   });
+
+
+
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const displayedUsers = filteredUsers.slice(
@@ -88,21 +86,22 @@ const UserList = () => {
       <div className="flex items-center gap-4 mb-4">
         <input
           type="text"
-          placeholder="Tìm kiếm theo tên hoặc email..."
+          placeholder="Tìm theo tên, email, username hoặc số điện thoại..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md"
         />
 
         <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
           className="p-2 border border-gray-300 rounded-md"
         >
-          <option value="all">Tất cả trạng thái</option>
+          <option value="all">Tất cả</option>
           <option value="active">Đang hoạt động</option>
-          <option value="banned">Bị cấm</option>
+          <option value="blocked">Đã bị chặn</option>
         </select>
+
       </div>
 
       {/* Hiển thị dữ liệu */}
@@ -117,34 +116,28 @@ const UserList = () => {
           <table className="w-full border border-gray-300 rounded-md">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-2 text-left">Tên</th>
+                <th className="p-2 text-left">Họ và Tên</th>
                 <th className="p-2 text-left">Email</th>
-                <th className="p-2 text-left">Trạng thái</th>
+                <th className="p-2 text-left">Username</th>
+                <th className="p-2 text-left">Số điện thoại</th>
+                <th className="p-2 text-left">Vai trò</th>
                 <th className="p-2 text-left">Hành động</th>
               </tr>
             </thead>
             <tbody>
               {displayedUsers.map((user) => (
                 <tr key={user._id} className="border-b hover:bg-gray-50">
-                  <td className="p-2">{user.name}</td>
+                  <td className="p-2">{user.fullname}</td>
                   <td className="p-2">{user.email}</td>
+                  <td className="p-2">{user.username}</td>
+                  <td className="p-2">{user.phone}</td>
                   <td
-                    className={`p-2 ${user.isActive ? "text-green-500" : "text-red-500"
+                    className={`p-2 ${user.role === "admin" ? "text-blue-500" : "text-gray-500"
                       }`}
                   >
-                    {user.isActive ? "Đang hoạt động" : "Bị cấm"}
+                    {user.role === "admin" ? "Admin" : "User"}
                   </td>
                   <td className="flex p-2 space-x-2">
-                    {/* Nút Cấm hoặc Mở khóa */}
-                    <button
-                      onClick={() => toggleUserStatus(user._id, user.isActive)}
-                      className={`flex items-center px-3 py-1 text-white rounded-md ${user.isActive ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
-                        }`}
-                    >
-                      <FaBan className="mr-1" />
-                      {user.isActive ? "Cấm" : "Gỡ cấm"}
-                    </button>
-
                     {/* Nút Xóa */}
                     <button
                       onClick={() => deleteUser(user._id)}
@@ -152,6 +145,13 @@ const UserList = () => {
                     >
                       <FaTrash className="mr-1" />
                       Xóa
+                    </button>
+                    <button
+                      onClick={() => toggleBlockUser(user._id, user.isBlocked)}
+                      className={`px-3 py-1 rounded-md text-white ${user.isBlocked ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
+                        }`}
+                    >
+                      {user.isBlocked ? "Bỏ chặn" : "Chặn"}
                     </button>
                   </td>
                 </tr>

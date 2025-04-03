@@ -1,4 +1,3 @@
-// src/pages/admin/products/ProductAdd.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -19,8 +18,17 @@ const ProductAdd = () => {
   const [selectedImages, setSelectedImages] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/brands").then((res) => setBrands(res.data));
-    axios.get("http://localhost:5000/api/categories").then((res) => setCategories(res.data));
+    const fetchBrandsAndCategories = async () => {
+      try {
+        const brandResponse = await axios.get("http://localhost:5000/api/brands");
+        setBrands(brandResponse.data);
+        const categoryResponse = await axios.get("http://localhost:5000/api/categories");
+        setCategories(categoryResponse.data);
+      } catch (error) {
+        console.error("Lỗi khi lấy thương hiệu hoặc danh mục", error);
+      }
+    };
+    fetchBrandsAndCategories();
   }, []);
 
   const handleChange = (e) => {
@@ -56,8 +64,8 @@ const ProductAdd = () => {
 
   const uploadImagesToCloudinary = async () => {
     const uploadedImages = [];
-    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload";
-    const uploadPreset = "YOUR_UPLOAD_PRESET";
+    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dvwvnhgg9/image/upload";
+    const uploadPreset = "product_upload";
 
     for (let image of selectedImages) {
       const formData = new FormData();
@@ -69,6 +77,7 @@ const ProductAdd = () => {
         uploadedImages.push(res.data.secure_url);
       } catch (error) {
         console.error("Lỗi khi upload ảnh lên Cloudinary", error);
+        alert("Có lỗi xảy ra khi upload hình ảnh. Vui lòng thử lại.");
       }
     }
     return uploadedImages;
@@ -81,8 +90,21 @@ const ProductAdd = () => {
       const newProduct = { ...product, images: uploadedImages };
       await axios.post("http://localhost:5000/api/products", newProduct);
       alert("Sản phẩm đã được thêm thành công!");
+      // Reset form after successful submission
+      setProduct({
+        name: "",
+        brand: "",
+        category: "",
+        gender: "",
+        variants: [{ size: "", color: "", stock: 0, price: "" }],
+        images: [],
+        description: "",
+        basePrice: 0,
+      });
+      setSelectedImages([]);
     } catch (error) {
       console.error("Lỗi khi thêm sản phẩm", error);
+      alert("Có lỗi xảy ra khi thêm sản phẩm. Vui lòng thử lại.");
     }
   };
 

@@ -125,5 +125,43 @@ const getUserById = async (req, res) => {
     res.status(500).json({ message: "Error fetching user", error });
   }
 };
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
 
-module.exports = { registerUser, loginUser, getUsers, getUserById };
+    await User.findByIdAndDelete(req.params.id); // Xóa người dùng
+    res.json({ message: "Tài khoản đã được xóa thành công!" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi xóa người dùng", error });
+  }
+};
+// Hàm chặn / bỏ chặn người dùng
+const toggleBlockUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    user.isBlocked = !user.isBlocked; // Đảo trạng thái chặn
+    await user.save();
+
+    res.json({
+      message: `Tài khoản đã được ${user.isBlocked ? "chặn" : "bỏ chặn"}`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server khi cập nhật trạng thái" });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getUsers,
+  getUserById,
+  deleteUser,
+  toggleBlockUser,
+};

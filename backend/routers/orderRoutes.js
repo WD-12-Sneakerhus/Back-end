@@ -13,7 +13,7 @@ const {
 // 🛍️ Tạo đơn hàng (User)
 router.post("/", userAuth, createOrder);
 
-// 📦 Lấy đơn hàng của user (User có thể xem đơn hàng của chính mình)
+// 📦 Lấy danh sách đơn hàng của người dùng (Có thể lọc theo trạng thái)
 router.get("/user/:userId", userAuth, getUserOrders);
 
 // 🔍 Lấy chi tiết đơn hàng (Cả user & admin đều xem được đơn hàng)

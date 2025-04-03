@@ -39,8 +39,8 @@ const OrderDetailPage = () => {
         </p>
         <p
           className={`text-sm font-semibold ${order.status === "Chờ xác nhận"
-              ? "text-yellow-500"
-              : "text-green-600"
+            ? "text-yellow-500"
+            : "text-green-600"
             }`}
         >
           Trạng thái: {order.status}

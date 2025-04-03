@@ -18,25 +18,14 @@ const orderSchema = new mongoose.Schema(
         price: { type: Number, required: true },
       },
     ],
-    shippingAddress: {
-      fullName: { type: String, required: true },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
-    },
-    paymentMethod: { type: String, required: true },
-    paymentResult: {
-      id: String,
-      status: String,
-      update_time: String,
-      email_address: String,
-    },
     totalPrice: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "confirmed", "shipping", "completed"],
+      default: "pending", // Trạng thái mặc định khi tạo đơn hàng
+    },
     isPaid: { type: Boolean, default: false },
-    paidAt: { type: Date },
     isDelivered: { type: Boolean, default: false },
-    deliveredAt: { type: Date },
   },
   { timestamps: true }
 );

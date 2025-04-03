@@ -140,8 +140,8 @@ const BuyPage = () => {
             onChange={(e) => setQuantity(Math.max(1, Math.min(selectedVariant.stock, Number(e.target.value))))}
             className="w-16 p-2 mt-2 border rounded"
           />
-          {selectedVariant.stock < 5 && (
-            <p className="mt-1 text-sm text-red-500">⚠ Chỉ còn {selectedVariant.stock} sản phẩm!</p>
+          {selectedVariant.stock < 3 && (
+            <p className="mt-1 text-sm text-red-500">⚠ Tồn kho còn ít: chỉ còn {selectedVariant.stock} sản phẩm!</p>
           )}
         </div>
       )}
@@ -150,8 +150,7 @@ const BuyPage = () => {
       <button
         onClick={handleBuyNow}
         disabled={!selectedVariant}
-        className={`w-full p-3 mt-6 text-white rounded ${selectedVariant ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"
-          }`}
+        className={`w-full p-3 mt-6 text-white rounded ${selectedVariant ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"}`}
       >
         Mua ngay
       </button>
