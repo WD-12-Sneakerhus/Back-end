@@ -1,1 +1,1 @@
-Push master.
+Push master
