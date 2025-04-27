@@ -11,4 +11,4 @@ let encodeToken = (userId) =>{
 }
 module.exports = {
     encodeToken:encodeToken
-};
+}
