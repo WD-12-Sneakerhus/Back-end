@@ -1,5 +1,5 @@
 'use strict';
-
+.
 const { sequelize } = require("../models");
 
 module.exports = {
