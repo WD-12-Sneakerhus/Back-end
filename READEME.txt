@@ -3,22 +3,7 @@ Push master
 
 
 
-let buildUrlEmail = (token, userId) => {
 
-    let result = `${process.env.URL_REACT}/verify-email?token=${token}&userId=${userId}`;
-    return result;
-}
-
-let hashUserPasswordFromBcrypt = (password) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let hashPassword = await bcrypt.hashSync(password, salt);
-            resolve(hashPassword);
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
 let checkUserEmail = (userEmail) => {
     return new Promise(async (resolve, reject) => {
         try {
