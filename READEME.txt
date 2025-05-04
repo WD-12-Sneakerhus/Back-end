@@ -1,8 +1,6 @@
 Push master
 
 
-    console.log("Backend Nodejs is running on the port : " + port);
-});
 import db from "../models/index";
 import bcrypt from "bcryptjs";
 import emailService from "./emailService";
