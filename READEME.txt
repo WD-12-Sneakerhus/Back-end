@@ -1,7 +1,6 @@
 Push master
 
 
-server.listen(port, () => {
     console.log("Backend Nodejs is running on the port : " + port);
 });
 import db from "../models/index";
