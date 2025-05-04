@@ -2,11 +2,6 @@ Push master
 
 
 
-import CommonUtils from '../utils/CommonUtils';
-const { Op, Sequelize } = require("sequelize");
-const { sequelize } = db;
-require('dotenv').config();
-const salt = bcrypt.genSaltSync(10);
 
 let buildUrlEmail = (token, userId) => {
 
