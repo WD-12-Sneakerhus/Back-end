@@ -1,10 +1,7 @@
 Push master
 
 
-import db from "../models/index";
-import bcrypt from "bcryptjs";
-import emailService from "./emailService";
-import { v4 as uuidv4 } from 'uuid';
+
 import CommonUtils from '../utils/CommonUtils';
 const { Op, Sequelize } = require("sequelize");
 const { sequelize } = db;
